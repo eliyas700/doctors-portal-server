@@ -20,12 +20,21 @@ async function run() {
     const servicesCollection = client
       .db("doctors-portal")
       .collection("services");
+    const bookingsCollection = client
+      .db("doctors-portal")
+      .collection("bookings");
 
     app.get("/service", async (req, res) => {
       const query = {};
       const cursor = servicesCollection.find(query);
       const services = await cursor.toArray();
       res.send(services);
+    });
+    //Add a Booking
+    app.post("/booking", async (req, res) => {
+      const booking = req.body;
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
     });
   } finally {
   }
