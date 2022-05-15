@@ -30,6 +30,14 @@ async function run() {
       const services = await cursor.toArray();
       res.send(services);
     });
+    //Get All the Booking For a Specific User
+    app.get("/booking", async (req, res) => {
+      const patient = req.query.patient;
+      const query = { patient: patient };
+      const bookings = await bookingsCollection.find(query).toArray();
+      res.send(bookings);
+    });
+
     //Add a Booking
     app.post("/booking", async (req, res) => {
       const booking = req.body;
