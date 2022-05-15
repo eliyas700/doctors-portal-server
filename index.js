@@ -23,6 +23,7 @@ async function run() {
     const bookingsCollection = client
       .db("doctors-portal")
       .collection("bookings");
+    const usersCollection = client.db("doctors-portal").collection("users");
 
     app.get("/service", async (req, res) => {
       const query = {};
@@ -53,6 +54,23 @@ async function run() {
       const result = await bookingsCollection.insertOne(booking);
       return res.send({ success: true, result });
     });
+    //Check Whether the user Was Previously logged in or Not
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
     //Get Available Booking Slots
     app.get("/available", async (req, res) => {
       const date = req.query.date;
