@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 //Middleware
@@ -68,7 +69,10 @@ async function run() {
         updateDoc,
         options
       );
-      res.send(result);
+      const token = jwt.sign({ email: email }, process.env.MY_ACCESS_TOKEN, {
+        expiresIn: "7d",
+      });
+      res.send({ result, token });
     });
 
     //Get Available Booking Slots
