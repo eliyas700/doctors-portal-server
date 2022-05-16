@@ -3,6 +3,7 @@ const app = express();
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const { decode } = require("jsonwebtoken");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 //Middleware
@@ -14,6 +15,26 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "Unauthorized Access!" });
+  }
+  //get the token from Auth header by Spliting
+  const token = authHeader.split(" ")[1];
+  //Verify Token (If it is Correct or not)
+  jwt.verify(token, process.env.MY_ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      // if Token is not Correct
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
+    //If token is Right
+    req.decoded = decoded;
+    console.log(decoded); // bar
+    next();
+  });
+};
 
 async function run() {
   try {
@@ -33,13 +54,23 @@ async function run() {
       res.send(services);
     });
     //Get All the Booking For a Specific User
-    app.get("/booking", async (req, res) => {
+    app.get("/booking", verifyJWT, async (req, res) => {
+      //Patient Email
       const patient = req.query.patient;
-      const authorization = req.headers.authorization;
-      console.log(authorization);
-      const query = { patient: patient };
-      const bookings = await bookingsCollection.find(query).toArray();
-      res.send(bookings);
+      // const authorization = req.headers.authorization;
+      // console.log(authorization);
+
+      // Give the information's to the Exact(Right) user,Dont give other Users Info
+      const decodedEmail = req.decoded.email;
+      if (patient === decodedEmail) {
+        const query = { patient: patient };
+        const bookings = await bookingsCollection.find(query).toArray();
+        res.send(bookings);
+      } else {
+        return res
+          .status(403)
+          .send({ message: "Forbidden Access! you aren't the right user" });
+      }
     });
 
     //Add a Booking
