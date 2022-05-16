@@ -93,6 +93,24 @@ async function run() {
       const users = await usersCollection.find().toArray();
       res.send(users);
     });
+    //Make a sprcific user to Admin admin
+    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const requester = req.decoded.email;
+      const requesterAccount = await usersCollection.findOne({
+        email: requester,
+      });
+      if (requesterAccount.role === "admin") {
+        const filter = { email: email };
+        const updateDoc = {
+          $set: { role: "admin" },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } else {
+        res.status(403).send({ message: "forbidden" });
+      }
+    });
     //Check Whether the user Was Previously logged in or Not
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
