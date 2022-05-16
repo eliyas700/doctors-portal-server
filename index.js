@@ -88,6 +88,11 @@ async function run() {
       const result = await bookingsCollection.insertOne(booking);
       return res.send({ success: true, result });
     });
+    //get all users
+    app.get("/user", verifyJWT, async (req, res) => {
+      const users = await usersCollection.find().toArray();
+      res.send(users);
+    });
     //Check Whether the user Was Previously logged in or Not
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
