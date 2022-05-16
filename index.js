@@ -88,14 +88,18 @@ async function run() {
       const result = await bookingsCollection.insertOne(booking);
       return res.send({ success: true, result });
     });
+
     //get all users
     app.get("/user", verifyJWT, async (req, res) => {
       const users = await usersCollection.find().toArray();
       res.send(users);
     });
-    //Make a sprcific user to Admin admin
+
+    //Make a specific user to Admin
     app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+      //The user Whom want to make admin
       const email = req.params.email;
+      //Requester who want to Make another User an Admin
       const requester = req.decoded.email;
       const requesterAccount = await usersCollection.findOne({
         email: requester,
@@ -108,8 +112,17 @@ async function run() {
         const result = await usersCollection.updateOne(filter, updateDoc);
         res.send(result);
       } else {
-        res.status(403).send({ message: "forbidden" });
+        res.status(403).send({ message: "forbidden,You dont have the power" });
       }
+    });
+
+    //Check Whether the user is an Admin or Not
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+
+      res.send({ admin: isAdmin });
     });
     //Check Whether the user Was Previously logged in or Not
     app.put("/user/:email", async (req, res) => {
