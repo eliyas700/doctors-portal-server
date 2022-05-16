@@ -35,6 +35,8 @@ async function run() {
     //Get All the Booking For a Specific User
     app.get("/booking", async (req, res) => {
       const patient = req.query.patient;
+      const authorization = req.headers.authorization;
+      console.log(authorization);
       const query = { patient: patient };
       const bookings = await bookingsCollection.find(query).toArray();
       res.send(bookings);
