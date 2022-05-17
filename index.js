@@ -184,11 +184,18 @@ async function run() {
       });
       res.send(services);
     });
+
     //Send Doctors Information's to Data Base
     app.post("/doctors", verifyJWT, verifyAdmin, async (req, res) => {
       const doctor = req.body;
       const result = await doctorsCollection.insertOne(doctor);
       res.send(result);
+    });
+
+    //Get All the Doctors Informations From Data base
+    app.get("/doctors", verifyJWT, verifyAdmin, async (req, res) => {
+      const allDoctors = await doctorsCollection.find().toArray();
+      res.send(allDoctors);
     });
   } finally {
   }
