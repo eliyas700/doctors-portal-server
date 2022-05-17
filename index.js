@@ -46,10 +46,11 @@ async function run() {
       .db("doctors-portal")
       .collection("bookings");
     const usersCollection = client.db("doctors-portal").collection("users");
+    const doctorsCollection = client.db("doctors-portal").collection("doctors");
 
     app.get("/service", async (req, res) => {
       const query = {};
-      const cursor = servicesCollection.find(query);
+      const cursor = servicesCollection.find(query).project({ name: 1 });
       const services = await cursor.toArray();
       res.send(services);
     });
@@ -168,6 +169,12 @@ async function run() {
         service.slots = available;
       });
       res.send(services);
+    });
+    //Send Doctors Information's to Data Base
+    app.post("/doctors", verifyJWT, async (req, res) => {
+      const doctor = req.body;
+      const result = await doctorsCollection.insertOne(doctor);
+      res.send(result);
     });
   } finally {
   }
