@@ -197,6 +197,13 @@ async function run() {
       const allDoctors = await doctorsCollection.find().toArray();
       res.send(allDoctors);
     });
+    //Get a doctor From Data base
+    app.delete("/doctors/:email", verifyJWT, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const restDoctors = await doctorsCollection.deleteOne(filter);
+      res.send(restDoctors);
+    });
   } finally {
   }
 }
