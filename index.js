@@ -47,7 +47,21 @@ async function run() {
       .collection("bookings");
     const usersCollection = client.db("doctors-portal").collection("users");
     const doctorsCollection = client.db("doctors-portal").collection("doctors");
+    //Check whether the user is an Admin or Not Function
+    const verifyAdmin = async (req, res, next) => {
+      //Requester who want to Make another User an Admin
+      const requester = req.decoded.email;
+      const requesterAccount = await usersCollection.findOne({
+        email: requester,
+      });
+      if (requesterAccount.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "Forbidden,You dont have the power" });
+      }
+    };
 
+    //Get All the services From Database
     app.get("/service", async (req, res) => {
       const query = {};
       const cursor = servicesCollection.find(query).project({ name: 1 });
@@ -171,7 +185,7 @@ async function run() {
       res.send(services);
     });
     //Send Doctors Information's to Data Base
-    app.post("/doctors", verifyJWT, async (req, res) => {
+    app.post("/doctors", verifyJWT, verifyAdmin, async (req, res) => {
       const doctor = req.body;
       const result = await doctorsCollection.insertOne(doctor);
       res.send(result);
