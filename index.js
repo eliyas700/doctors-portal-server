@@ -48,6 +48,7 @@ async function run() {
       .collection("bookings");
     const usersCollection = client.db("doctors-portal").collection("users");
     const doctorsCollection = client.db("doctors-portal").collection("doctors");
+    const paymentCollection = client.db("doctors-portal").collection("payment");
     //Check whether the user is an Admin or Not Function
     const verifyAdmin = async (req, res, next) => {
       //Requester who want to Make another User an Admin
@@ -110,6 +111,25 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const booking = await bookingsCollection.findOne(query);
       res.send(booking);
+    });
+
+    // Update Booking Status after Payment
+    app.patch("/booking/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      const result = await paymentCollection.insertOne(payment);
+      const updatedBooking = await bookingsCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedDoc);
     });
 
     //get all users
