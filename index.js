@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion,ObjectId } = require("mongodb");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const { decode } = require("jsonwebtoken");
@@ -103,6 +103,15 @@ async function run() {
       const result = await bookingsCollection.insertOne(booking);
       return res.send({ success: true, result });
     });
+    //Get a Specific Booking Ttreatment Information For Payment
+    app.get("/booking/:id",async(req,res)=>{
+      const id=req.params.id;
+      const query={_id:ObjectId(id)}
+      const booking=await bookingsCollection.findOne(query)
+      res.send(booking)
+    })
+
+
 
     //get all users
     app.get("/user", verifyJWT, async (req, res) => {
