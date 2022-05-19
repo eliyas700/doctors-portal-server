@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion,ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const { decode } = require("jsonwebtoken");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")(process.env.MY_PAYMENT_SECRET);
 //Middleware
 app.use(cors());
 app.use(express.json());
@@ -104,14 +105,12 @@ async function run() {
       return res.send({ success: true, result });
     });
     //Get a Specific Booking Ttreatment Information For Payment
-    app.get("/booking/:id",async(req,res)=>{
-      const id=req.params.id;
-      const query={_id:ObjectId(id)}
-      const booking=await bookingsCollection.findOne(query)
-      res.send(booking)
-    })
-
-
+    app.get("/booking/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const booking = await bookingsCollection.findOne(query);
+      res.send(booking);
+    });
 
     //get all users
     app.get("/user", verifyJWT, async (req, res) => {
@@ -212,6 +211,26 @@ async function run() {
       const filter = { email: email };
       const restDoctors = await doctorsCollection.deleteOne(filter);
       res.send(restDoctors);
+    });
+
+    //Create Payment intent API(Get client Secret)
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const service = req.body;
+      //Get the Price Amount
+      const price = service.price;
+      //Convert to Poisha
+      const amount = price * 100;
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
   } finally {
   }
